@@ -1,42 +1,55 @@
-from fastapi import FastAPI , File , UploadFile
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from classify import classify_df
+import shutil
+import os
+import tempfile   # ✅ NEW
+
+from classify import classify_df, load_model_once
 
 app = FastAPI()
 
-orgs =[
-"*"
-]
-
 app.add_middleware(
-	CORSMiddleware,
-	allow_origins=orgs,
-	allow_credentials=True,
-	allow_methods=["GET","POST"],
-	allow_headers=["*"],
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
+
+# Load model once
+model = load_model_once()
 
 @app.get("/test")
 def test():
-	return {"message":"working"}
-
+    return {"message": "working"}
 
 @app.post("/upload")
-def process_video():
+async def process_video(file: UploadFile = File(...)):
+    temp_path = None   # keep reference for cleanup
+
     try:
-        classification_result=classify_df()
+        # Create temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
+            temp_path = tmp.name
+            shutil.copyfileobj(file.file, tmp)
+
+        # Run inference using temp file
+        score, label = classify_df(temp_path, model)
+
+        return {
+            "label": label,
+            "confidence": round(score, 4)
+        }
+
     except Exception as err:
         print(err)
-        return JSONResponse(content={
-              "err":str(err.args)
-        })
-        
-    return JSONResponse(content={
-			"result": classification_result[1]
-			})
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(err)}
+        )
 
-
-if __name__ == "__app__":
-	import uvicorn 
-	uvicorn.run(app, host="localhost", port=8000)
+    finally:
+        # Cleanup temp file
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)

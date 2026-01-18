@@ -4,12 +4,15 @@ import cv2
 import os
 from tensorflow.keras.models import load_model
 
-
-MODEL_PATH = r"best_model.keras"
-VIDEO_PATH = r"test_video.mp4"
-
+MODEL_PATH = "best_model.keras"
 IMG_SIZE = 128
 MAX_FRAMES = 20
+
+def load_model_once():
+    print("Loading model...")
+    model = load_model(MODEL_PATH)
+    print("✓ Model loaded")
+    return model
 
 
 def preprocess_video(video_path, max_frames=MAX_FRAMES, img_size=IMG_SIZE):
@@ -91,86 +94,27 @@ def preprocess_video(video_path, max_frames=MAX_FRAMES, img_size=IMG_SIZE):
     
     print(f"Preprocessed video shape: {video_array.shape}")
     print(f"Value range: [{video_array.min():.3f}, {video_array.max():.3f}]")
-    
     return video_array
 
 
-def classify_df():
-	try:
-		model = load_model(MODEL_PATH)
-		print("✓ Model loaded successfully!")
-		print(f"Model input shape: {model.input_shape}")
-		print(f"Model output shape: {model.output_shape}")
-	except Exception as e:
-		print(f"✗ Error loading model: {e}")
-		raise e
+# Accept video_path and model
+def classify_df(video_path: str, model):
+    if not os.path.exists(video_path):
+        raise Exception("Video not found")
 
-	print("\n" + "="*70)
-	print("PREPROCESSING VIDEO")
-	print("="*70)
+    video_data = preprocess_video(video_path)
 
-	if not os.path.exists(VIDEO_PATH):
-		print(f"✗ Error: Video file not found at {VIDEO_PATH}")
-		raise Exception("Video not found")
+    prediction = model.predict(video_data, verbose=0)
+    probability = float(prediction[0][0])
 
-	video_data = preprocess_video(VIDEO_PATH, max_frames=MAX_FRAMES, img_size=IMG_SIZE)
+    threshold = 0.5
+    is_fake = probability > threshold
 
-	if video_data is None:
-		print("✗ Error: Failed to preprocess video")
-		raise Exception("Failed to preprocess video")
-	# ============================================================================
-	# MAKE PREDICTION
-	# ============================================================================
-	print("\n" + "="*70)
-	print("MAKING PREDICTION")
-	print("="*70)
+    confidence = probability if is_fake else (1 - probability)
+    label = "Fake Video" if is_fake else "Real Video"
 
-	print("Running inference...")
-	prediction = model.predict(video_data, verbose=0)
-	probability = prediction[0][0]
+    return confidence, label
 
-	print(f"\nRaw prediction probability: {probability:.6f}")
-     
-	print("\n" + "="*70)
-	print("RESULTS")
-	print("="*70)
-
-	threshold = 0.5
-	is_fake :bool = probability > threshold
-
-	print(f"Threshold: {threshold}")
-	print(f"Probability of FAKE: {probability:.2%}")
-	print(f"Probability of REAL: {(1-probability):.2%}")
-
-	print("\n" + "-"*70)
-	if is_fake:
-		confidence = probability
-		print(f"🚨 PREDICTION: FAKE (Deepfake detected)")
-		print(f"   Confidence: {confidence:.2%}")
-		
-		# Confidence levels
-		if confidence > 0.9:
-			print(f"   ⚠️  Very high confidence - likely a deepfake")
-		elif confidence > 0.7:
-			print(f"   ⚠️  High confidence - probably a deepfake")
-		elif confidence > 0.5:
-			print(f"   ⚠️  Moderate confidence - might be a deepfake")
-	else:
-		confidence:float = 1 - probability
-		print(f"✓ PREDICTION: REAL (Authentic video)")
-		print(f"  Confidence: {confidence:.2%}")
-		
-		# Confidence levels
-		if confidence > 0.9:
-			print(f"  ✓ Very high confidence - likely authentic")
-		elif confidence > 0.7:
-			print(f"  ✓ High confidence - probably authentic")
-		elif confidence > 0.5:
-			print(f"  ✓ Moderate confidence - might be authentic")
-
-	print("-"*70)
-	score=confidence  
-	return score,"Fake Video" if is_fake else "Real Video"
 
 
 
