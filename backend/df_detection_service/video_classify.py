@@ -4,7 +4,7 @@ import cv2
 import os
 from tensorflow.keras.models import load_model
 
-MODEL_PATH = "best_model.keras"
+MODEL_PATH = "./model/best_model.keras"
 IMG_SIZE = 128
 MAX_FRAMES = 20
 
@@ -111,96 +111,12 @@ def classify_df(video_path: str, model):
     is_fake = probability > threshold
 
     confidence = probability if is_fake else (1 - probability)
-    label = "Fake Video" if is_fake else "Real Video"
-
-    return confidence, label
-
-
-
-
-
-
-
-# # ============================================================================
-# # LOAD MODEL
-# # ============================================================================
-# print("="*70)
-# print("DEEPFAKE DETECTION - VIDEO TESTING")
-# print("="*70)
-
-# print(f"\nLoading model from: {MODEL_PATH}")
-
-
-
-
-# # ============================================================================
-# # INTERPRET RESULTS
-# # ============================================================================
-
-
-# # ============================================================================
-# # ADDITIONAL ANALYSIS (OPTIONAL)
-# # ============================================================================
-# print("\n" + "="*70)
-# print("ADDITIONAL ANALYSIS")
-# print("="*70)
-
-# # Test with different thresholds
-# thresholds = [0.3, 0.5, 0.7, 0.9]
-# print("\nPrediction at different thresholds:")
-# for thresh in thresholds:
-#     result = "FAKE" if probability > thresh else "REAL"
-#     print(f"  Threshold {thresh:.1f}: {result}")
-
-
-# # Provide interpretation guide
-# print("\n" + "="*70)
-# print("INTERPRETATION GUIDE")
-# print("="*70)
-# print("""
-# How to interpret the results:
-
-# 1. Probability Score:
-#    - 0.0 - 0.3: Likely REAL video
-#    - 0.3 - 0.5: Uncertain, leaning REAL
-#    - 0.5 - 0.7: Uncertain, leaning FAKE
-#    - 0.7 - 1.0: Likely FAKE video
-
-# 2. Confidence Levels:
-#    - Very High (>90%): Strong evidence
-#    - High (70-90%): Good evidence
-#    - Moderate (50-70%): Weak evidence, manual review recommended
-
-# 3. Important Notes:
-#    - This is a binary classifier (FAKE vs REAL)
-#    - No model is 100% accurate
-#    - Consider multiple factors beyond this prediction
-#    - Video quality and length affect accuracy
-#    - For critical decisions, use multiple detection methods
-# """)
-
-# print("="*70)
-# print("Testing complete!")
-# print("="*70)
-
-
-# # ============================================================================
-# # SAVE RESULTS TO FILE (OPTIONAL)
-# # ============================================================================
-# save_results = input("\nDo you want to save results to a text file? (y/n): ").strip().lower()
-
-# if save_results == 'y':
-#     output_file = "prediction_results.txt"
-#     with open(output_file, 'w') as f:
-#         f.write("="*70 + "\n")
-#         f.write("DEEPFAKE DETECTION RESULTS\n")
-#         f.write("="*70 + "\n\n")
-#         f.write(f"Video: {VIDEO_PATH}\n")
-#         f.write(f"Model: {MODEL_PATH}\n")
-#         f.write(f"Date: {np.datetime64('now')}\n\n")
-#         f.write(f"Prediction: {'FAKE' if is_fake else 'REAL'}\n")
-#         f.write(f"Confidence: {(probability if is_fake else 1-probability):.2%}\n")
-#         f.write(f"Fake Probability: {probability:.6f}\n")
-#         f.write(f"Real Probability: {(1-probability):.6f}\n")
     
-#     print(f"✓ Results saved to {output_file}")
+
+    return confidence, is_fake
+
+
+
+
+
+
