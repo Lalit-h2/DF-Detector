@@ -1,0 +1,18 @@
+syntax="proto3";
+
+package df_detection;
+
+option go_package = "github.com/Lalit-h2/DF-Detector/backend/main_service/df_detect";
+
+service Classify{
+    rpc ClassifyVideo(ClassifyRequest) returns(ClassificationResult){};
+}
+
+message ClassifyRequest{
+    string video_path=1;
+}
+
+message ClassificationResult{
+    bool is_fake=1;
+    float confidence=2;
+}
