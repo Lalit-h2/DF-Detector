@@ -15,8 +15,9 @@ var (
 )
 
 func init() {
-	fmt.Println("here")
+	fmt.Println("grpc connection....")
 	createConnection()
+	fmt.Println("grpc connected")
 }
 
 func createConnection() {
