@@ -10,8 +10,8 @@ import (
 	"os"
 	"time"
 
-	model "github.com/Lalit-h2/DF-Detector/backend/main_service"
 	"github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/grpc_service"
+	"github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/model"
 	"github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/utils"
 	// "github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/grpc_service"
 )
