@@ -4,6 +4,7 @@ go 1.25.1
 
 require (
 	github.com/go-chi/chi/v5 v5.2.4 // indirect
+	github.com/go-chi/cors v1.2.2 // indirect
 	github.com/jmoiron/sqlx v1.4.0 // indirect
 	github.com/lib/pq v1.11.2 // indirect
 	golang.org/x/net v0.49.0 // indirect
