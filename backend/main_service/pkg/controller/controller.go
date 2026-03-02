@@ -47,16 +47,6 @@ func DetectDeepFake(w http.ResponseWriter, r *http.Request) {
 
 	vhash := md5.Sum(vdata)
 
-	/*
-		go func(){
-
-		err=db.InsertHash(vhash)
-		if err!=nil{
-		result =db.FetchResult(vhash)
-		}
-
-		}
-	*/
 	var record model.DetectionModelHistory
 	record.ModelId = 1
 	record.VideoHash = fmt.Sprintf("%x", vhash)
@@ -69,8 +59,8 @@ func DetectDeepFake(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "%v %v", record.IsFake, record.Confidence)
 		return
 	}
+	f.Seek(0, io.SeekStart) //because file needs to be read again in CopyVideoFile function
 
-	f.Seek(0, io.SeekStart)
 	r = r.WithContext(context.WithValue(r.Context(), "video_file", &f))
 	r = r.WithContext(context.WithValue(r.Context(), "video_header", file_header))
 	var filepath string

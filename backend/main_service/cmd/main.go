@@ -18,6 +18,7 @@ import (
 func main() {
 	fmt.Println("Started")
 	model.InitSchema()
+	model.InitUserSchema()
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -30,6 +31,7 @@ func main() {
 		},
 	))
 	routers.RegisterRoutes(r)
+	routers.RegisterAdminRoutes(r)
 	defer grpc_service.CloseConnection()
 
 	log.Fatal(http.ListenAndServe("localhost:8000", r))

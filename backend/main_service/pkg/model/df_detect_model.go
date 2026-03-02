@@ -30,7 +30,7 @@ type DetectionModelHistory struct {
 
 const schema string = `
 	CREATE TABLE IF NOT EXISTS "DetectionModel" (
-	model_id integer PRIMARY KEY,
+	model_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	model_version VARCHAR(255)
 	);
 
@@ -43,8 +43,11 @@ const schema string = `
 	);
 	`
 
-func InitSchema() {
+func init() {
 	db = dbconfig.GetDb()
+}
+
+func InitSchema() {
 	db.MustExec(schema)
 }
 
@@ -56,6 +59,21 @@ func (dmh *DetectionModelHistory) Insert() (int, error) {
 	}
 
 	_, err = qry.Exec(dmh)
+
+	if err != nil {
+		fmt.Println(err)
+		return 0, err
+	}
+	return 1, nil
+}
+func (dm *DetectionModel) Insert() (int, error) {
+	qry, err := db.PrepareNamed(`INSERT INTO "DetectionModel"(model_version) VALUES(:model_version)`)
+	if err != nil {
+		fmt.Println(err)
+		return 0, err
+	}
+
+	_, err = qry.Exec(dm)
 
 	if err != nil {
 		fmt.Println(err)
