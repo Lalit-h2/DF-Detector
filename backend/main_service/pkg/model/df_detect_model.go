@@ -22,6 +22,7 @@ type DetectionModel struct {
 }
 
 type DetectionModelHistory struct {
+	RecordId   int32     `db:"record_id"`
 	ModelId    int32     `db:"model_id"` //foreign key
 	UploadDate time.Time `db:"upload_date"`
 	VideoHash  string    `db:"video_hash"`
@@ -34,7 +35,9 @@ const schema string = `
 	model_version VARCHAR(255)
 	);
 
-	CREATE TABLE IF NOT EXISTS "DetectionModelHistory" (model_id integer NOT NULL,
+	CREATE TABLE IF NOT EXISTS "DetectionModelHistory" (
+	record_id	INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	model_id integer NOT NULL,
 	upload_date TIMESTAMPTZ,
 	video_hash VARCHAR(255) UNIQUE ,
 	is_fake BOOLEAN NOT NULL DEFAULT TRUE,
