@@ -22,6 +22,7 @@ type DetectionModel struct {
 }
 
 type DetectionModelHistory struct {
+	RecordId   int32     `db:"record_id"`
 	ModelId    int32     `db:"model_id"` //foreign key
 	UploadDate time.Time `db:"upload_date"`
 	VideoHash  string    `db:"video_hash"`
@@ -30,11 +31,13 @@ type DetectionModelHistory struct {
 
 const schema string = `
 	CREATE TABLE IF NOT EXISTS "DetectionModel" (
-	model_id integer PRIMARY KEY,
+	model_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	model_version VARCHAR(255)
 	);
 
-	CREATE TABLE IF NOT EXISTS "DetectionModelHistory" (model_id integer NOT NULL,
+	CREATE TABLE IF NOT EXISTS "DetectionModelHistory" (
+	record_id	INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	model_id integer NOT NULL,
 	upload_date TIMESTAMPTZ,
 	video_hash VARCHAR(255) UNIQUE ,
 	is_fake BOOLEAN NOT NULL DEFAULT TRUE,
@@ -43,8 +46,11 @@ const schema string = `
 	);
 	`
 
-func InitSchema() {
+func init() {
 	db = dbconfig.GetDb()
+}
+
+func InitSchema() {
 	db.MustExec(schema)
 }
 
@@ -56,6 +62,21 @@ func (dmh *DetectionModelHistory) Insert() (int, error) {
 	}
 
 	_, err = qry.Exec(dmh)
+
+	if err != nil {
+		fmt.Println(err)
+		return 0, err
+	}
+	return 1, nil
+}
+func (dm *DetectionModel) Insert() (int, error) {
+	qry, err := db.PrepareNamed(`INSERT INTO "DetectionModel"(model_version) VALUES(:model_version)`)
+	if err != nil {
+		fmt.Println(err)
+		return 0, err
+	}
+
+	_, err = qry.Exec(dm)
 
 	if err != nil {
 		fmt.Println(err)
