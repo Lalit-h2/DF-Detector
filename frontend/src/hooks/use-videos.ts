@@ -25,19 +25,23 @@ export function useVideo(id: number) {
 
 export function useCreateVideo() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (video: InsertVideo) => {
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("video", file);
+
       const res = await fetch("/api/videos", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(video),
+        body: formData,
       });
-      if (!res.ok) throw new Error("Failed to create video record");
+
+      if (!res.ok) throw new Error("Failed to upload video");
       return await res.json();
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/videos"] });
-      // Invalidate analytics as well since stats changed
       queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
     },
   });
@@ -58,36 +62,15 @@ export function useDeleteVideo() {
     },
   });
 }
-
 export function useAnalytics() {
   return useQuery({
     queryKey: ["/api/analytics"],
     queryFn: async () => {
-      // Mock analytics response structure matching schema
-      const res = await fetch("/api/videos"); 
-      const videos = await res.json() as Video[];
-      
-      // Calculate dummy analytics based on actual video data
-      const total = videos.length;
-      const fakes = videos.filter(v => v.prediction === "FAKE").length;
-      
-      // Mock weekly data
-      const weeklyData = [
-        { name: 'Mon', real: 4, fake: 2 },
-        { name: 'Tue', real: 3, fake: 1 },
-        { name: 'Wed', real: 2, fake: 5 },
-        { name: 'Thu', real: 6, fake: 2 },
-        { name: 'Fri', real: 4, fake: 3 },
-        { name: 'Sat', real: 7, fake: 1 },
-        { name: 'Sun', real: 5, fake: 2 },
-      ];
+      const res = await fetch("/api/analytics");
 
-      return {
-        totalAnalyzed: total || 124,
-        fakePercentage: total ? Math.round((fakes / total) * 100) : 34,
-        accuracy: 94.5,
-        weeklyData,
-      };
+      if (!res.ok) throw new Error("Failed to fetch analytics");
+
+      return await res.json();
     },
   });
 }

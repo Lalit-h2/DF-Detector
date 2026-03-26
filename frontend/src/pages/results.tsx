@@ -11,7 +11,7 @@ import {
   Info
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip,CartesianGrid } from "recharts";
 
 export default function ResultsPage() {
   const { id } = useParams();

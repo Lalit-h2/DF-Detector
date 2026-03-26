@@ -28,12 +28,14 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: async (credentials: LoginInput) => {
+      console.log("LOGIN API CALLED", credentials);
+
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credentials),
       });
-      
+      console.log("RESPONSE:", res);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Login failed");

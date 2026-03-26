@@ -4,10 +4,21 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
       "@shared": path.resolve(__dirname, "shared"),
+    },
+  },
+
+  // ✅ ADD THIS BLOCK
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:5000", // 🔴 CHANGE if your backend uses different port
+        changeOrigin: true,
+      },
     },
   },
 });

@@ -1,8 +1,7 @@
-import { Layout } from "@/components/Layout";
+import { Layout } from "../components/Layout";
 import { User, Bell, Moon, Lock, Shield } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { useUser } from "@/hooks/use-auth";
-
+import { Switch } from "../components/ui/switch";
+import { useUser } from "../hooks/use-auth";
 export default function SettingsPage() {
   const { data: user } = useUser();
 

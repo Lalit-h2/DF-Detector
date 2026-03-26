@@ -40,14 +40,15 @@ function Router() {
   return (
     <Switch>
       
-      {/* <Route path="/auth" component={AuthPage} />
-      <Route path="/" component={Dashboard} />
+      
+      {/* <Route path="/" component={Dashboard} />
       <Route path="/upload" component={UploadPage} />
       <Route path="/results" component={ResultsPage} />
       <Route path="/history" component={HistoryPage} />
       <Route path="/analytics" component={AnalyticsPage} />
       <Route path="/settings" component={SettingsPage} /> */}
 
+      <Route path="/auth" component={AuthPage} />
       <Route path="/">
         <ProtectedRoute component={Dashboard} />
         </Route>

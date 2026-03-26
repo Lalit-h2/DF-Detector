@@ -14,49 +14,19 @@ export default function UploadPage() {
   const [progress, setProgress] = useState(0);
 
   const handleAnalyze = async () => {
-    if (!file) return;
+  if (!file) return;
 
-    setIsAnalyzing(true);
+  setIsAnalyzing(true);
 
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 90) {
-          clearInterval(interval);
-          return 90;
-        }
-        return prev + 10;
-      });
-    }, 300);
-
-    // Simulate backend processing delay
-    setTimeout(() => {
-      clearInterval(interval);
-      setProgress(100);
-
-      // Randomize result for demo purposes
-      const isFake = Math.random() > 0.5;
-      const confidence = (85 + Math.random() * 14).toFixed(1);
-
-      createVideo.mutate({
-        title: file.name,
-        filename: file.name,
-        size: file.size,
-        status: "complete",
-        prediction: isFake ? "FAKE" : "REAL",
-        confidence: confidence,
-        probabilityScore: (parseFloat(confidence) / 100).toFixed(3),
-        riskBadge: isFake ? "High Risk" : "Safe",
-      }, {
-        onSuccess: (data) => {
-            // Need to wait a moment to show 100%
-            setTimeout(() => {
-                setLocation(`/results/${data.id}`);
-            }, 500);
-        }
-      });
-    }, 3000);
-  };
+  createVideo.mutate(file, {
+    onSuccess: (data) => {
+      setLocation(`/results/${data.id}`);
+    },
+    onError: () => {
+      setIsAnalyzing(false);
+    }
+  });
+};
 
   return (
     <Layout>

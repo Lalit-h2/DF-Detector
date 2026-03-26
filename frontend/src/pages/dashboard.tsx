@@ -40,6 +40,18 @@ const item = {
 };
 
 export default function Dashboard() {
+//   const analytics = {
+//   totalAnalyzed: 4,
+//   fakePercentage: 50,
+//   accuracy: 94.5,
+//   weeklyData: [
+//     { name: 'Mon', real: 4, fake: 2 },
+//     { name: 'Tue', real: 3, fake: 5 },
+//     { name: 'Wed', real: 6, fake: 1 },
+//     { name: 'Thu', real: 4, fake: 3 },
+//     { name: 'Fri', real: 7, fake: 2 },
+//   ]
+// };
   const { data: analytics, isLoading: analyticsLoading } = useAnalytics();
   const { data: videos, isLoading: videosLoading } = useVideos();
 
