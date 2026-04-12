@@ -40,9 +40,12 @@ const schema string = `
 	model_id integer NOT NULL,
 	upload_date TIMESTAMPTZ,
 	video_hash VARCHAR(255) UNIQUE ,
+	-- video_hash VARCHAR(255)  ,
 	is_fake BOOLEAN NOT NULL DEFAULT TRUE,
 	confidence float8,
 	Foreign Key(model_id) REFERENCES "DetectionModel"(model_id) ON DELETE SET NULL
+	-- CONSTRAINT unique_model_video_hash UNIQUE (model_id, video_hash)
+
 	);
 	`
 
@@ -54,21 +57,22 @@ func InitSchema() {
 	db.MustExec(schema)
 }
 
-func (dmh *DetectionModelHistory) Insert() (int, error) {
-	qry, err := db.PrepareNamed(`INSERT INTO "DetectionModelHistory"(model_id,upload_date,video_hash,is_fake,confidence) VALUES(:model_id,:upload_date,:video_hash,:is_fake,:confidence)`)
+func (dmh *DetectionModelHistory) Insert() (int32, error) {
+	qry, err := db.PrepareNamed(`INSERT INTO "DetectionModelHistory"(model_id,upload_date,video_hash,is_fake,confidence) VALUES(:model_id,:upload_date,:video_hash,:is_fake,:confidence) RETURNING record_id`)
 	if err != nil {
 		fmt.Println(err)
 		return 0, err
 	}
 
-	_, err = qry.Exec(dmh)
+	err = qry.QueryRow(dmh).Scan(&dmh.RecordId)
 
 	if err != nil {
 		fmt.Println(err)
-		return 0, err
+		return -1, err
 	}
-	return 1, nil
+	return dmh.RecordId, nil
 }
+
 func (dm *DetectionModel) Insert() (int, error) {
 	qry, err := db.PrepareNamed(`INSERT INTO "DetectionModel"(model_version) VALUES(:model_version)`)
 	if err != nil {
@@ -86,7 +90,7 @@ func (dm *DetectionModel) Insert() (int, error) {
 }
 
 func (dmh *DetectionModelHistory) CheckHash() (bool, error) {
-	qry, err := db.PrepareNamed(`Select model_id,upload_date,is_fake,confidence  from "DetectionModelHistory" WHERE video_hash=:video_hash`)
+	qry, err := db.PrepareNamed(`Select record_id,model_id,upload_date,is_fake,confidence  from "DetectionModelHistory" WHERE video_hash=:video_hash`)
 	if err != nil {
 		fmt.Println(err)
 		return false, err

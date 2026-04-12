@@ -7,7 +7,8 @@ import { Shield, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const authSchema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string()
+        .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -20,7 +21,7 @@ export default function AuthPage() {
   
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
-    defaultValues: { username: "", password: "" },
+    defaultValues: { email: "", password: "" },
   });
 
   const onSubmit = (data: AuthFormData) => {
@@ -47,15 +48,23 @@ export default function AuthPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md z-10"
       >
-        <div className="glass-card rounded-3xl p-8 md:p-10 shadow-2xl border border-white/10 backdrop-blur-xl">
+        <div className={`glass-card rounded-3xl p-8 md:p-10 shadow-2xl border backdrop-blur-xl ${
+          isLogin 
+            ? 'bg-blue-900/30 border-blue-400/30' 
+            : 'bg-white/10 border-white/10'
+        }`}>
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-purple-500/30 mb-6">
+            <div className={`w-16 h-16 rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-6 ${
+              isLogin
+                ? 'bg-gradient-to-br from-blue-300 to-blue-600 shadow-blue-500/30'
+                : 'bg-gradient-to-br from-cyan-400 to-purple-600 shadow-purple-500/30'
+            }`}>
               <Shield className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold font-display tracking-tight mb-2">
               {isLogin ? "Welcome Back" : "Create Account"}
             </h1>
-            <p className="text-muted-foreground">
+            <p className={`${isLogin ? 'text-blue-200' : 'text-muted-foreground'}`}>
               {isLogin 
                 ? "Sign in to access DeepShield analytics" 
                 : "Get started with advanced deepfake detection"}
@@ -65,14 +74,18 @@ export default function AuthPage() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium ml-1">Username</label>
+                <label className="text-sm font-medium ml-1">{isLogin ? 'Username' : 'Username'}</label>
                 <input
-                  {...form.register("username")}
-                  className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all outline-none text-foreground placeholder:text-muted-foreground/50"
+                  {...form.register("email")}
+                  className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-foreground placeholder:text-muted-foreground/50 ${
+                    isLogin
+                      ? 'bg-blue-900/20 border-blue-400/40 focus:border-blue-300/60 focus:ring-4 focus:ring-blue-400/20'
+                      : 'bg-secondary/50 border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10'
+                  }`}
                   placeholder="Enter your username"
                 />
-                {form.formState.errors.username && (
-                  <p className="text-red-400 text-xs ml-1">{form.formState.errors.username.message}</p>
+                {form.formState.errors.email && (
+                  <p className="text-red-400 text-xs ml-1">{form.formState.errors.email.message}</p>
                 )}
               </div>
               
@@ -81,7 +94,11 @@ export default function AuthPage() {
                 <input
                   type="password"
                   {...form.register("password")}
-                  className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all outline-none text-foreground placeholder:text-muted-foreground/50"
+                  className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-foreground placeholder:text-muted-foreground/50 ${
+                    isLogin
+                      ? 'bg-blue-900/20 border-blue-400/40 focus:border-blue-300/60 focus:ring-4 focus:ring-blue-400/20'
+                      : 'bg-secondary/50 border-white/10 focus:border-primary/50 focus:ring-4 focus:ring-primary/10'
+                  }`}
                   placeholder="••••••••"
                 />
                 {form.formState.errors.password && (
@@ -99,7 +116,11 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-purple-600 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className={`w-full py-3.5 rounded-xl font-bold text-white transition-all duration-200 ${
+                isLogin
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed'
+                  : 'bg-gradient-to-r from-cyan-500 to-purple-600 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed'
+              }`}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
@@ -118,7 +139,11 @@ export default function AuthPage() {
                   setIsLogin(!isLogin);
                   form.reset();
                 }}
-                className="text-sm text-muted-foreground hover:text-white transition-colors"
+                className={`text-sm transition-colors ${
+                  isLogin
+                    ? 'text-blue-200 hover:text-blue-100'
+                    : 'text-muted-foreground hover:text-white'
+                }`}
               >
                 {isLogin 
                   ? "Don't have an account? Sign up" 

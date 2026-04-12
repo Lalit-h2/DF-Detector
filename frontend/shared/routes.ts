@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertUserSchema, insertVideoSchema, users, videos } from './schema';
+import { insertUserSchema, insertVideoSchema, users, videos } from './type';
 
 export const errorSchemas = {
   validation: z.object({ message: z.string(), field: z.string().optional() }),
@@ -13,7 +13,7 @@ export const api = {
     login: {
       method: 'POST' as const,
       path: '/api/auth/login' as const,
-      input: z.object({ username: z.string(), password: z.string() }),
+      input: z.object({ email: z.string(), password: z.string() }),
       responses: {
         200: z.custom<typeof users.$inferSelect>(),
         401: errorSchemas.unauthorized,

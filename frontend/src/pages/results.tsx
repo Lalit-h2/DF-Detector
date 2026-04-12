@@ -12,18 +12,25 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip,CartesianGrid } from "recharts";
+import { useEffect } from "react";
 
 export default function ResultsPage() {
   const { id } = useParams();
   const { data: video, isLoading } = useVideo(Number(id));
-
+    useEffect(()=>{
+        console.log(video)
+    },[isLoading])
   // Mock timeline data for the graph
-  const timelineData = Array.from({ length: 20 }, (_, i) => ({
-    frame: i * 5,
-    confidence: video?.confidence 
-        ? Math.min(100, Math.max(50, Number(video.confidence) + (Math.random() * 10 - 5)))
-        : 85
-  }));
+  const base = Number(video?.confidence) || 0;
+
+const timelineData = Array.from({ length: 20 }, (_, i) => ({
+  frame: i * 5,
+  confidence: Math.min(
+    100,
+    Math.max(base*100, base + (Math.random() * 10 - 5))
+  )
+}));
+
 
   if (isLoading) {
     return (

@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	model "github.com/Lalit-h2/DF-Detector/backend/main_service"
 	"github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/dbconfig"
 	_ "github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/dbconfig"
 	"github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/grpc_service"
+	"github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/model"
 	"github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/routers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -37,4 +37,3 @@ func main() {
 	}()
 	log.Fatal(http.ListenAndServe("localhost:8000", r))
 }
-
