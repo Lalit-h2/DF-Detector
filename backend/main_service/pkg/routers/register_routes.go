@@ -18,6 +18,7 @@ func RegisterRoutes(r chi.Router) {
 	})
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middlewares.Authenticate)
+		r.Get("/videos", controller.GetUserHistory)
 		r.Post("/videos", controller.DetectDeepFake)
 		r.Get("/videos/{id}", controller.GetResult)
 	})

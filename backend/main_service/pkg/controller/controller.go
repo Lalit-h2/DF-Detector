@@ -45,6 +45,24 @@ func GetResult(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func GetUserHistory(w http.ResponseWriter, r *http.Request) {
+	var err error
+	userid, ok := r.Context().Value("jwtSubUser").(int64)
+	if !ok {
+		log.Println("Invalid Id format:", r.Context())
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+	var usr = model.User{ID: userid}
+	usrHistory, err := usr.GetHistory()
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "DB error", http.StatusInternalServerError)
+		return
+	}
+	makeResponseJson(&w, map[string]any{"data": usrHistory})
+}
+
 func DetectDeepFake(w http.ResponseWriter, r *http.Request) {
 	userid, ok := r.Context().Value("jwtSubUser").(int64)
 	if !ok {

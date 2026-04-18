@@ -137,35 +137,29 @@ type VideoResultHolder struct {
 	VideoHash         string    `db:"video_hash"`
 	ActivityTimestamp time.Time `db:"activity_timestamp"`
 	ModelVersion      string    `db:"model_version"`
-	IsFake            bool      `db:"is_fake"`
 	Confidence        float64   `db:"confidence"`
+	IsFake            bool      `db:"is_fake"`
 }
 
-type UserHistoryHolder struct {
-	Name              string    `db:"name"`
-	VideoHash         string    `db:"video_hash"`
-	ActivityTimestamp time.Time `db:"upload_date"`
-	ModelVersion      string    `db:"model_version"`
-	IsFake            bool      `db:"is_fake"`
-	Confidence        float64   `db:"confidence"`
-}
+type UserHistoryHolder []VideoResultHolder
 
-func (usr *User) GetHistory() ([]UserHistoryHolder, error) {
-	var userhistory []UserHistoryHolder
-	rows, err := userStatements.history.Query(*usr)
+func (usr *User) GetHistory() (UserHistoryHolder, error) {
+	var userhistory = []VideoResultHolder{}
+	err := userStatements.history.Select(&userhistory, usr)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var record UserHistoryHolder
-		if err = rows.Scan(&record); err != nil {
-			log.Println("error while scanning rows")
-			return nil, err
-		}
-		userhistory = append(userhistory, record)
-	}
+	// defer rows.Close()
+
+	// for rows.Next() {
+	// 	var record UserHistoryHolder
+	// 	if err = rows.Scan(&record); err != nil {
+	// 		log.Println("error while scanning rows")
+	// 		return nil, err
+	// 	}
+	// 	userhistory = append(userhistory, record)
+	// }
 	return userhistory, nil
 }
 
@@ -194,12 +188,13 @@ func GetVideoResult(id int64) (VideoResultHolder, error) {
 
 const userHistoryQuery = `
 	SELECT
-	    users.name              AS name,
-	    "DetectionModelHistory".video_hash    AS video_hash,
-	    user_history.activity_timestamp AS upload_date,
-	    "DetectionModel".model_version AS model_version,
-	    "DetectionModelHistory".is_fake AS is_fake,
-	    "DetectionModelHistory".confidence AS confidence
+	    user_history.activity_id                AS   activity_id,
+	    user_history.video_name                 AS   video_name,
+	    "DetectionModelHistory".video_hash      AS   video_hash,
+	    user_history.activity_timestamp 		AS   activity_timestamp,
+	    "DetectionModel".model_version 			AS   model_version,
+	    "DetectionModelHistory".is_fake 		AS   is_fake,
+	    "DetectionModelHistory".confidence 		AS   confidence
 	FROM
 	    user_history
 	JOIN
