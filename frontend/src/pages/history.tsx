@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Layout } from "../components/Layout";
 import { useVideos, useDeleteVideo } from "../hooks/use-videos";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { format } from "date-fns";
 import {
   Search,
@@ -12,6 +12,7 @@ import {
   Calendar,
   ShieldAlert,
   ShieldCheck,
+  ExternalLink,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,17 +31,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../components/ui/alert-dialog";
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "../components/ui/context-menu";
 
 export default function HistoryPage() {
   const { data: videos, isLoading } = useVideos();
   const deleteVideo = useDeleteVideo();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"ALL" | "REAL" | "FAKE">("ALL");
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [, navigate] = useLocation();
 
-  const filteredVideos = videos?.filter((v) => {
-    const matchesSearch = v.filename
-      .toLowerCase()
-      .includes(search.toLowerCase());
+  const filteredVideos = videos?.filter((v: any) => {
+    const matchesSearch = v.Name.toLowerCase().includes(search.toLowerCase());
     const matchesFilter = filter === "ALL" || v.prediction === filter;
     return matchesSearch && matchesFilter;
   });
@@ -113,8 +115,11 @@ export default function HistoryPage() {
                   <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Confidence
                   </th>
-                  <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-right">
-                    Actions
+                  <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Video Hash
+                  </th>
+                  <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Model
                   </th>
                 </tr>
               </thead>
@@ -122,138 +127,178 @@ export default function HistoryPage() {
                 {!filteredVideos?.length && (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       className="px-6 py-12 text-center text-muted-foreground"
                     >
                       No videos found matching your criteria.
                     </td>
                   </tr>
                 )}
-                {filteredVideos?.map((video) => (
-                  <tr
-                    key={video.id}
-                    className="group hover:bg-white/5 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0">
-                          <Play className="w-4 h-4 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-white truncate max-w-[200px]">
-                            {video.filename}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {(video.size / (1024 * 1024)).toFixed(1)} MB
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="w-4 h-4" />
-                        {video.uploadDate
-                          ? format(new Date(video.uploadDate), "MMM d, yyyy")
-                          : "-"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div
-                        className={`
-                                        inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
-                                        ${
-                                          video.prediction === "REAL"
-                                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                            : video.prediction === "FAKE"
-                                              ? "bg-red-500/10 text-red-400 border-red-500/20"
-                                              : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
-                                        }
-                                    `}
-                      >
-                        {video.prediction === "REAL" ? (
-                          <ShieldCheck className="w-3 h-3" />
-                        ) : (
-                          <ShieldAlert className="w-3 h-3" />
-                        )}
-                        {video.prediction}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${video.prediction === "FAKE" ? "bg-red-500" : "bg-emerald-500"}`}
-                            style={{ width: `${video.confidence || 0}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium text-white">
-                          {video.confidence}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="p-2 hover:bg-white/10 rounded-lg transition-colors text-muted-foreground hover:text-white">
-                          <MoreVertical className="w-4 h-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="bg-card border-white/10 text-white"
-                        >
-                          <Link href={`/results/${video.id}`}>
-                            <DropdownMenuItem className="cursor-pointer">
-                              View Details
-                            </DropdownMenuItem>
-                          </Link>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem
-                                onSelect={(e) => e.preventDefault()}
-                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer"
+                {filteredVideos?.map((video: any) => {
+                  video["prediction"] = video.IsFake ? "FAKE" : "REAL";
+
+                  return (
+                    <ContextMenu key={video.AID}>
+                      <ContextMenuTrigger asChild>
+                        <tr className="group hover:bg-white/5 transition-colors cursor-context-menu select-none">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center shrink-0">
+                                <Play className="w-4 h-4 text-muted-foreground" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-white truncate max-w-[200px]">
+                                  {video.Name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {(video.size / (1024 * 1024)).toFixed(1)} MB
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Calendar className="w-4 h-4" />
+                              {video.ActivityTimestamp
+                                ? format(
+                                    new Date(video.ActivityTimestamp),
+                                    "MMM d, yyyy"
+                                  )
+                                : "-"}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div
+                              className={`
+                                inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border
+                                ${
+                                  video.prediction === "REAL"
+                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                    : video.prediction === "FAKE"
+                                      ? "bg-red-500/10 text-red-400 border-red-500/20"
+                                      : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+                                }
+                              `}
+                            >
+                              {video.prediction === "REAL" ? (
+                                <ShieldCheck className="w-3 h-3" />
+                              ) : (
+                                <ShieldAlert className="w-3 h-3" />
+                              )}
+                              {video.prediction}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${video.prediction === "FAKE" ? "bg-red-500" : "bg-emerald-500"}`}
+                                  style={{
+                                    width: `${video.Confidence * 100 || 0}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="text-sm font-medium text-white">
+                                {video.Confidence}%
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            {video.VideoHash ? (
+                              <span
+                                title={video.VideoHash}
+                                className="font-mono text-xs text-muted-foreground bg-white/5 border border-white/10 rounded-md px-2 py-1 cursor-default inline-block max-w-[120px] truncate align-middle"
                               >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="bg-card border-white/10 text-white">
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Are you absolutely sure?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription className="text-muted-foreground">
-                                  This action cannot be undone. This will
-                                  permanently delete the video analysis record.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel className="bg-transparent border-white/10 hover:bg-white/5 hover:text-white">
-                                  Cancel
-                                </AlertDialogCancel>
-                                <AlertDialogAction
-                                  className="bg-red-600 hover:bg-red-700 text-white border-0"
-                                  onClick={() =>
-                                    deleteVideo.mutate(video.id, {
-                                      onSuccess: () =>
-                                        alert("Deleted successfully"),
-                                      onError: () => alert("Delete failed"),
-                                    })
-                                  }
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))}
+                                {video.VideoHash}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">
+                                —
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            {video.ModelVersion ? (
+                              <span
+                                title={video.ModelVersion}
+                                className="text-xs text-sky-400 bg-sky-500/10 border border-sky-500/20 rounded-full px-2.5 py-1 cursor-default inline-block max-w-[100px] truncate align-middle"
+                              >
+                                {video.ModelVersion}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">
+                                —
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      </ContextMenuTrigger>
+
+                      {/* Right-click context menu */}
+                      <ContextMenuContent className="bg-card border-white/10 text-white w-48">
+                        <ContextMenuItem
+                          className="cursor-pointer gap-2"
+                          onClick={() => navigate(`/results/${video.AID}`)}
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          View Details
+                        </ContextMenuItem>
+                        <ContextMenuSeparator className="bg-white/10" />
+                        <ContextMenuItem
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer gap-2"
+                          onClick={() => setPendingDeleteId(video.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </ContextMenuItem>
+                      </ContextMenuContent>
+                    </ContextMenu>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
       )}
+
+      {/* Delete confirmation dialog — lives outside the row map so it isn't re-mounted */}
+      <AlertDialog
+        open={!!pendingDeleteId}
+        onOpenChange={(open) => !open && setPendingDeleteId(null)}
+      >
+        <AlertDialogContent className="bg-card border-white/10 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              This action cannot be undone. This will permanently delete the
+              video analysis record.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent border-white/10 hover:bg-white/5 hover:text-white">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white border-0"
+              onClick={() => {
+                if (!pendingDeleteId) return;
+                deleteVideo.mutate(2, {
+                  onSuccess: () => {
+                    alert("Deleted successfully");
+                    setPendingDeleteId(null);
+                  },
+                  onError: () => {
+                    alert("Delete failed");
+                    setPendingDeleteId(null);
+                  },
+                });
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }

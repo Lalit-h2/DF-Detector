@@ -362,9 +362,11 @@ export default function Dashboard() {
                     </td>
                   </tr>
                 ) : (
-                  recentVideos.map((video) => (
+                  recentVideos.map((video:any) => {
+                    video["prediction"]=video.IsFake?"FAKE":"REAL"
+                    return (
                     <tr
-                      key={video.id}
+                      key={video.AID}
                       className="hover:bg-white/5 transition-colors"
                     >
                       <td className="px-6 py-4">
@@ -373,13 +375,13 @@ export default function Dashboard() {
                             <Play className="w-4 h-4 text-muted-foreground" />
                           </div>
                           <span className="font-medium text-white">
-                            {video.filename}
+                            {video.Name}
                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {video.uploadDate
-                          ? format(new Date(video.uploadDate), "MMM d, yyyy")
+                        {video.ActivityTimestamp
+                          ? format(new Date(video.ActivityTimestamp), "MMM d, yyyy")
                           : "-"}
                       </td>
                       <td className="px-6 py-4">
@@ -399,18 +401,18 @@ export default function Dashboard() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-white">
-                        {video.confidence ? `${video.confidence}%` : "-"}
+                        {video.Confidence ? `${video.Confidence}%` : "-"}
                       </td>
                       <td className="px-6 py-4">
-                        <Link href={`/results/${video.id}`}>
+                        <Link href={`/results/${video.AID}`}>
                           <button className="text-sm text-primary hover:text-primary/80 font-medium">
                             Details
                           </button>
                         </Link>
                       </td>
                     </tr>
-                  ))
-                )}
+                  )})
+)}
               </tbody>
             </table>
           </div>

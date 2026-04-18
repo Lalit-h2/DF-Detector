@@ -6,9 +6,25 @@ export function useVideos() {
   return useQuery({
     queryKey: ["/api/videos"],
     queryFn: async () => {
-      const res = await fetch("/api/videos");
-      if (!res.ok) throw new Error("Failed to fetch videos");
-      return (await res.json()) as Video[];
+      const token = localStorage.getItem("auth-token");
+      
+      if (!token) {
+        throw new Error("Auth Token doesn't exist. Please login again.");
+      }
+      
+      if (isTokenExpired(token)) {
+        throw new Error("Auth Token has expired. Please login again.");
+      }
+      const res = await fetch("/api/videos",{
+        headers:{
+          Authorization:`Bearer ${token}`
+        }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data =await res.json()
+      console.log(data)
+      return data.data
+      // return (await res.json()) as Video[];
     },
   });
 }
