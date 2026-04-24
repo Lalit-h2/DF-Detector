@@ -96,9 +96,9 @@ export function useCreateVideo() {
         throw new Error("Auth Token has expired. Please login again.");
       }
       const formData = new FormData();
-
+      
       formData.append("video", file);
-
+      
       const res = await fetch("/api/videos", {
         method: "POST",
         headers: {
@@ -106,11 +106,11 @@ export function useCreateVideo() {
         },
         body: formData,
       });
-
+      
       if (!res.ok) throw new Error("Failed to upload video");
       return await res.json();
     },
-
+    
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/videos"] });
       queryClient.invalidateQueries({ queryKey: ["/api/analytics"] });
@@ -137,11 +137,26 @@ export function useAnalytics() {
   return useQuery({
     queryKey: ["/api/analytics"],
     queryFn: async () => {
-      const res = await fetch("/api/analytics");
-
+      const token = localStorage.getItem("auth-token");
+      
+      if (!token) {
+        throw new Error("Auth Token doesn't exist. Please login again.");
+      }
+      
+      if (isTokenExpired(token)) {
+        throw new Error("Auth Token has expired. Please login again.");
+      }
+      const res = await fetch("/api/analytics",{
+        headers:{
+          Authorization:`Bearer ${token}`
+        }
+      });
+      
       if (!res.ok) throw new Error("Failed to fetch analytics");
-
-      return await res.json();
+      const data=await res.json();
+      data.weeklyData=atob(data.weeklyData)
+      console.log(data  )
+      return data;
     },
   });
 }

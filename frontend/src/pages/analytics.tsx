@@ -68,7 +68,7 @@ export default function AnalyticsPage() {
             <h3 className="font-bold text-white mb-6">Weekly Detection Trends</h3>
             <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={analytics?.weeklyData}>
+                    <BarChart data={JSON.parse(analytics?.weeklyData)}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                         <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                         <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />

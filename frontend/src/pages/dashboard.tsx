@@ -210,7 +210,9 @@ export default function Dashboard() {
             </h3>
             <div className="w-full" style={{ height: 300 }}>
               <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={analytics?.weeklyData || []}>
+                {
+                  
+                  <AreaChart data={JSON.parse(analytics?.weeklyData) || []}>
                   {" "}
                   <defs>
                     <linearGradient id="colorFake" x1="0" y1="0" x2="0" y2="1">
@@ -226,20 +228,20 @@ export default function Dashboard() {
                     strokeDasharray="3 3"
                     stroke="#ffffff10"
                     vertical={false}
-                  />
+                    />
                   <XAxis
                     dataKey="name"
                     stroke="#64748b"
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                  />
+                    />
                   <YAxis
                     stroke="#64748b"
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                  />
+                    />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#0f172a",
@@ -247,7 +249,7 @@ export default function Dashboard() {
                       borderRadius: "8px",
                     }}
                     itemStyle={{ color: "#fff" }}
-                  />
+                    />
                   <Area
                     type="monotone"
                     dataKey="real"
@@ -255,7 +257,7 @@ export default function Dashboard() {
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorReal)"
-                  />
+                    />
                   <Area
                     type="monotone"
                     dataKey="fake"
@@ -263,16 +265,17 @@ export default function Dashboard() {
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorFake)"
-                  />
+                    />
                 </AreaChart>
+            }
               </ResponsiveContainer>
             </div>
           </motion.div>
 
           {/* Pie Chart */}
           <motion.div
-            variants={item}
-            className="glass-card p-6 rounded-2xl flex flex-col"
+          variants={item}
+          className="glass-card p-6 rounded-2xl flex flex-col"
           >
             <h3 className="text-lg font-bold text-white mb-6">
               Real vs Fake Ratio
