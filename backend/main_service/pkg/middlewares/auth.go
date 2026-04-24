@@ -42,7 +42,7 @@ func Authenticate(next http.Handler) http.Handler {
 			// ctx = context.WithValue(ctx, "jwtUserRole", user_details["role"]) might add later
 
 			r = r.WithContext(ctx)
-			fmt.Println(r.Context())
+			fmt.Println(r.Context().Value("jwtSubUser"))
 			next.ServeHTTP(w, r)
 
 		})
