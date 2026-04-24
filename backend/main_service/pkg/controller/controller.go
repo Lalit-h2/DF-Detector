@@ -45,6 +45,23 @@ func GetResult(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func UserAnalytics(w http.ResponseWriter, r *http.Request) {
+	var err error
+	userid, ok := r.Context().Value("jwtSubUser").(int64)
+	if !ok {
+		log.Println("Invalid Id format:", r.Context())
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+	analyticalData, err := model.GetUserAnalytics(userid)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "DB error", http.StatusInternalServerError)
+		return
+	}
+	makeResponseJson(&w, analyticalData)
+}
+
 func GetUserHistory(w http.ResponseWriter, r *http.Request) {
 	var err error
 	userid, ok := r.Context().Value("jwtSubUser").(int64)

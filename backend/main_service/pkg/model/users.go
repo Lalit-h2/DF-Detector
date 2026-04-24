@@ -58,7 +58,7 @@ var userStatements = struct {
 	registerLog,
 	history *sqlx.NamedStmt
 	getVidResult,
-	other *sqlx.Stmt
+	getAnalytics *sqlx.Stmt
 }{}
 
 func init() {
@@ -95,6 +95,10 @@ func prepareStatements() {
 		log.Fatal(err)
 	}
 	userStatements.history, err = db.PrepareNamed(userHistoryQuery)
+	if err != nil {
+		log.Fatal(err)
+	}
+	userStatements.getAnalytics, err = db.Preparex(analyticsQueryString)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -181,6 +185,16 @@ func GetVideoResult(id int64) (VideoResultHolder, error) {
 	}
 	return vid_result, nil
 }
+func GetUserAnalytics(id int64) (QueryResult, error) {
+	var result QueryResult
+	err := userStatements.getAnalytics.Get(&result, id)
+	if err != nil {
+		log.Println(err)
+		return QueryResult{}, err
+	}
+
+	return result, nil
+}
 
 // type userStatements struct{
 // 	insert,getPassword,someother *sqlx.NamedStmt
@@ -205,6 +219,51 @@ const userHistoryQuery = `
 	    "DetectionModel" ON "DetectionModelHistory".model_id = "DetectionModel".model_id
 	WHERE
 		users.id = :id
+`
+
+type QueryResult struct {
+	TotalAnalyzed  int     `db:"total_analyzed" json:"totalAnalyzed"`
+	FakePercentage float32 `db:"fake_percentage" json:"fakePercentage"`
+	WeeklyData     any     `db:"weekly_data" json:"weeklyData"`
+}
+
+const analyticsQueryString = `
+				WITH daily_stats AS (
+				    SELECT
+				        uh.user_id,
+				        TO_CHAR(uh.activity_timestamp, 'Dy') AS day_name,
+				        COUNT(*) AS total,
+				        COUNT(CASE WHEN dmh.is_fake = false THEN 1 END) AS real,
+				        COUNT(CASE WHEN dmh.is_fake = true THEN 1 END) AS fake
+				    FROM user_history uh
+				    JOIN "DetectionModelHistory" dmh
+				        ON uh.hash_id = dmh.record_id
+				    WHERE uh.user_id = $1
+				      AND uh.activity_timestamp >= NOW() - INTERVAL '7 days'
+				    GROUP BY uh.user_id, day_name
+				)
+
+				SELECT
+				    SUM(total) AS total_analyzed,
+
+				    ROUND(
+				        (SUM(fake)::float / NULLIF(SUM(total), 0) * 100)::numeric,
+				        1
+				    ) AS fake_percentage,
+
+				    COALESCE(
+				        json_agg(
+				            json_build_object(
+				                'name', day_name,
+				                'real', real,
+				                'fake', fake
+				            )
+				        ),
+				        '[]'::json
+				    ) AS weekly_data
+
+				FROM daily_stats
+				GROUP BY user_id;
 `
 
 func InitUserSchema() {
