@@ -1,6 +1,8 @@
 package model
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -189,6 +191,9 @@ func GetUserAnalytics(id int64) (QueryResult, error) {
 	var result QueryResult
 	err := userStatements.getAnalytics.Get(&result, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return QueryResult{}, nil
+		}
 		log.Println(err)
 		return QueryResult{}, err
 	}
