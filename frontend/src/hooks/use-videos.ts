@@ -20,7 +20,7 @@ export function useVideos() {
           Authorization:`Bearer ${token}`
         }
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) return Error(await res.text());
       const data =await res.json()
       console.log(data)
       return data.data

@@ -63,9 +63,9 @@ export default function Dashboard() {
         {
           name: "Real",
           value:
-            analytics.totalAnalyzed -
+            analytics?.totalAnalyzed -
             Math.round(
-              analytics.totalAnalyzed * (analytics.fakePercentage / 100),
+              analytics?.totalAnalyzed * (analytics.fakePercentage / 100),
             ),
         },
         {
@@ -211,7 +211,7 @@ export default function Dashboard() {
             <div className="w-full" style={{ height: 300 }}>
               <ResponsiveContainer width="100%" height={300}>
                 {
-                  
+                  analytics?.weeklyData &&
                   <AreaChart data={JSON.parse(analytics?.weeklyData) || []}>
                   {" "}
                   <defs>

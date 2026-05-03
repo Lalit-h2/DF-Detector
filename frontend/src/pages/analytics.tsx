@@ -50,7 +50,7 @@ export default function AnalyticsPage() {
         <div className="glass-card p-6 rounded-2xl border-t-4 border-red-500">
             <h3 className="text-sm text-muted-foreground uppercase tracking-wider mb-2">Threats Detected</h3>
             <p className="text-4xl font-bold text-white font-display">
-                {analytics ? Math.round(analytics.totalAnalyzed * (analytics.fakePercentage / 100)) : 0}
+                {analytics ? Math.round(analytics?.totalAnalyzed * (analytics?.fakePercentage / 100)) : 0}
             </p>
         </div>
         <div className="glass-card p-6 rounded-2xl border-t-4 border-purple-500">
@@ -68,6 +68,8 @@ export default function AnalyticsPage() {
             <h3 className="font-bold text-white mb-6">Weekly Detection Trends</h3>
             <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
+                  {
+                    analytics?.weeklyData &&
                     <BarChart data={JSON.parse(analytics?.weeklyData)}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
                         <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
@@ -81,6 +83,7 @@ export default function AnalyticsPage() {
                         <Bar dataKey="real" name="Real Videos" fill="#06b6d4" radius={[4, 4, 0, 0]} />
                         <Bar dataKey="fake" name="Deepfakes" fill="#ef4444" radius={[4, 4, 0, 0]} />
                     </BarChart>
+                      }
                 </ResponsiveContainer>
             </div>
         </motion.div>
