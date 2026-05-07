@@ -12,16 +12,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 func main() {
 	fmt.Println("Started")
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal(err)
-	}
+	
 	model.InitSchema()
 	model.InitUserSchema()
 	r := chi.NewRouter()
