@@ -3,6 +3,7 @@ package grpc_service
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -21,7 +22,9 @@ func init() {
 }
 
 func createConnection() {
-	addr = "localhost:5501"
+	grpcHost := os.Getenv("GRPC_HOST")
+	const grpcPort = "5501"
+	addr = fmt.Sprintf("%s:%s", grpcHost, grpcPort)
 	var err error
 	conn, err = grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

@@ -35,5 +35,5 @@ func main() {
 	routers.RegisterAdminRoutes(r)
 	defer grpc_service.CloseConnection()
 
-	log.Fatal(http.ListenAndServe("localhost:8000", r))
+	log.Fatal(http.ListenAndServe(":8000", r))
 }
