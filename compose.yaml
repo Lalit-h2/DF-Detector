@@ -1,0 +1,46 @@
+services:
+  db:
+    container_name: pq_host
+    image: docker.io/postgres:18.2-alpine3.22
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_df:/var/lib/postgresql/data
+
+  df_detection_service:
+    build: ./backend/df_detection_service
+    container_name: dfds
+    depends_on:
+      db:
+        condition: "service_completed_successfully"
+        restart: true
+    volumes:
+      - shared_temp:/tmp
+
+  main_service:
+    build: ./backend/main_service
+    container_name: main_service_cp
+    environment:
+     - DB_HOST=pq_host
+     - GRPC_HOST=dfds
+    depends_on:
+      df_detection_service:
+        condition: "service_completed_successfully"
+        restart: true
+    ports:
+      - 8000:8000
+    volumes:
+      - shared_temp:/tmp
+
+
+volumes:
+  shared_temp:
+    external: true
+  postgres_df:
+    external: true
+
+
