@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/grpc_service"
@@ -62,6 +63,19 @@ func UserAnalytics(w http.ResponseWriter, r *http.Request) {
 	makeResponseJson(&w, analyticalData)
 }
 
+func logUserActivity(userid int64, rid int32, filename string) (aid int64, err error) {
+	var usr_log = model.UserHistory{UserID: userid}
+	usr_log.HashID = rid
+	usr_log.VideoName = filename
+	usr_log.ActivityTimestamp = time.Now().UTC()
+	_, err = usr_log.Register()
+	if err != nil {
+		log.Println("Err:", err)
+	}
+	aid = usr_log.ActivityID
+	return
+}
+
 func GetUserHistory(w http.ResponseWriter, r *http.Request) {
 	var err error
 	userid, ok := r.Context().Value("jwtSubUser").(int64)
@@ -87,6 +101,7 @@ func DetectDeepFake(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error while chekcing user id")
 		return
 	}
+	var wg = &sync.WaitGroup{}
 	fmt.Println("Id of user thats making the request is", userid)
 	result := new(Result)
 	if err := r.ParseMultipartForm(20 << 20); err != nil {
@@ -105,50 +120,59 @@ func DetectDeepFake(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(file_header.Filename)
 	defer f.Close()
 
-	var vdata []byte
+	var vhash [16]byte
+	wg.Go(func() {
+		var vdata []byte
+		vdata, err = io.ReadAll(f)
+		if err != nil {
+			return
+		}
 
-	if vdata, err = io.ReadAll(f); err != nil {
-		log.Println(err)
-	}
-
-	vhash := md5.Sum(vdata)
-
+		vhash = md5.Sum(vdata)
+	})
 	var record model.DetectionModelHistory
 	record.ModelId = 1
+	wg.Wait()
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error while hashing file", http.StatusBadRequest)
+		return
+	}
 	record.VideoHash = fmt.Sprintf("%x", vhash)
+
 	fmt.Println(record.VideoHash)
 	resultExists, err := record.CheckHash()
 	if err != nil {
 		log.Println(err)
+		log.Println("Proceeding despite error")
 	}
 	if resultExists {
-		rid := record.RecordId
-		var usr_log = model.UserHistory{UserID: userid}
-		usr_log.HashID = rid
-		usr_log.VideoName = file_header.Filename
-		usr_log.ActivityTimestamp = time.Now().UTC()
-		_, err = usr_log.Register()
+		activity_id, err := logUserActivity(userid, record.RecordId, file_header.Filename)
 		if err != nil {
-			log.Println("Err:", err)
 			http.Error(w, "Trouble while recording result", http.StatusInternalServerError)
 			return
 		}
 		makeResponseJson(&w, map[string]any{
-			"id": usr_log.ActivityID,
+			"id": activity_id,
 		})
 		return
 	}
-	f.Seek(0, io.SeekStart) //because file needs to be read again in CopyVideoFile function
+	wg.Go(func() {
+		f.Seek(0, io.SeekStart) //because file needs to be read again in CopyVideoFile function
+	})
 
-	r = r.WithContext(context.WithValue(r.Context(), "video_file", &f))
 	r = r.WithContext(context.WithValue(r.Context(), "video_header", file_header))
+	r = r.WithContext(context.WithValue(r.Context(), "video_file", &f))
 	var filepath string
+
+	wg.Wait()
 
 	filepath, err = utils.CopyVideoFile(r)
 	fmt.Println(filepath)
 
 	if err != nil {
 		log.Println(err)
+		http.Error(w, "Error while copying video file to tmp", http.StatusInternalServerError)
 		return
 	}
 	defer func() {
@@ -175,18 +199,13 @@ func DetectDeepFake(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var usr_log = model.UserHistory{UserID: userid}
-	usr_log.HashID = rid
-	usr_log.VideoName = file_header.Filename
-	usr_log.ActivityTimestamp = time.Now().UTC()
-	_, err = usr_log.Register()
+	activity_id, err := logUserActivity(userid, rid, file_header.Filename)
 	if err != nil {
-		log.Println("Err:", err)
 		http.Error(w, "Trouble while recording result", http.StatusInternalServerError)
 		return
 	}
 
 	makeResponseJson(&w, map[string]any{
-		"id": usr_log.ActivityID,
+		"id": activity_id,
 	})
 }

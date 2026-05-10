@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -96,8 +97,8 @@ func (dmh *DetectionModelHistory) CheckHash() (bool, error) {
 		return false, err
 	}
 	err = qry.Get(dmh, dmh)
-	if err == sql.ErrNoRows {
-		fmt.Println("ErrNoRows", err)
+	if errors.Is(err, sql.ErrNoRows) {
+		fmt.Println("ErrNoRows no record exists ,call grpc for results", err)
 		return false, nil
 	}
 	if err != nil {
