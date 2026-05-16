@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	_ "github.com/Lalit-h2/DF-Detector/backend/main_service/internal/loadenv"
 	_ "github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/dbconfig"
 	"github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/grpc_service"
 	"github.com/Lalit-h2/DF-Detector/backend/main_service/pkg/model"
@@ -17,7 +18,7 @@ import (
 
 func main() {
 	fmt.Println("Started")
-	
+
 	model.InitSchema()
 	model.InitUserSchema()
 	r := chi.NewRouter()

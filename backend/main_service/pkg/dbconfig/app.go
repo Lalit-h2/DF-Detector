@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"github.com/joho/godotenv"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -13,10 +13,6 @@ var db *sqlx.DB
 
 func init() {
 	var err error
-	err = godotenv.Load(".env")
-	if err != nil {
-		log.Fatal(err)
-	}
 	db, err = Connect()
 	if err != nil {
 		log.Fatal(err)
