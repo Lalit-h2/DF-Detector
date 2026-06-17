@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Upload, History, BarChart3, Settings, LogOut, Shield } from "lucide-react";
+import { LayoutDashboard, Upload, History, BarChart3, LogOut, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLogout } from "@/hooks/use-auth";
 
@@ -8,7 +8,6 @@ const menuItems = [
   { icon: Upload, label: "Analyze Video", href: "/upload" },
   { icon: History, label: "History", href: "/history" },
   { icon: BarChart3, label: "Analytics", href: "/analytics" },
-  { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
 export function Sidebar() {

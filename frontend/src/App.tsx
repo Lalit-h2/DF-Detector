@@ -12,7 +12,7 @@ import UploadPage from "./pages/upload";
 import ResultsPage from "./pages/results";
 import HistoryPage from "./pages/history";
 import AnalyticsPage from "./pages/analytics";
-import SettingsPage from "./pages/settings";
+// import SettingsPage from "./pages/settings";
 import NotFound from "./pages/not-found";
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, [key: string]: any }) {
   const { data: user, isLoading } = useUser();
@@ -64,9 +64,9 @@ function Router() {
       <Route path="/analytics">
         <ProtectedRoute component={AnalyticsPage} />
       </Route>
-      <Route path="/settings">
+      {/* <Route path="/settings">
         <ProtectedRoute component={SettingsPage} />
-      </Route>
+      </Route> */}
       
       <Route component={NotFound} />
     </Switch>
