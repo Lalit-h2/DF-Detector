@@ -154,7 +154,9 @@ export function useAnalytics() {
       
       if (!res.ok) throw new Error("Failed to fetch analytics");
       const data=await res.json();
-      data.weeklyData=atob(data.weeklyData)
+      if(data.weeklyData!=null){
+        data.weeklyData=atob(data.weeklyData)
+      }
       console.log(data  )
       return data;
     },
