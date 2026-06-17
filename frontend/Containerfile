@@ -1,0 +1,27 @@
+FROM alpine as deepui
+
+WORKDIR /usr/frontend/app
+
+RUN apk add --update nodejs npm
+
+RUN apk add --update npm 
+
+COPY package*.json ./
+
+# RUN --mount=type=cache,target=/usr/frontend/.npm && \
+#     npm set cache /usr/frontend/.npm && \
+#      npm install 
+
+RUN npm install
+
+COPY . .
+
+RUN npx vite build
+
+FROM docker.io/nginx:1.22-alpine 
+
+COPY  nginx.conf etc/nginx/conf.d/default.conf 
+
+COPY --from=deepui /usr/frontend/app/dist /var/code/html 
+
+EXPOSE 80 
