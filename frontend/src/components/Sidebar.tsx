@@ -1,5 +1,15 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, Upload, History, BarChart3, LogOut, Shield } from "lucide-react";
+import {
+  LayoutDashboard,
+  Upload,
+  History,
+  BarChart3,
+  LogOut,
+  Shield,
+  Menu,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLogout } from "@/hooks/use-auth";
 
@@ -13,15 +23,19 @@ const menuItems = [
 export function Sidebar() {
   const [location] = useLocation();
   const logoutMutation = useLogout();
+  const [isOpen, setIsOpen] = useState(false);
 
-  return (
-    <div className="w-64 h-screen fixed left-0 top-0 glass-card border-r border-white/5 flex flex-col z-50">
+  const SidebarContent = () => (
+    <>
       <div className="p-8 flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
           <Shield className="text-white w-6 h-6" />
         </div>
+
         <div>
-          <h1 className="font-bold text-xl tracking-tight text-white font-display">DeepShield</h1>
+          <h1 className="font-bold text-xl tracking-tight text-white font-display">
+            DeepShield
+          </h1>
           <p className="text-xs text-muted-foreground">AI Detection</p>
         </div>
       </div>
@@ -29,18 +43,29 @@ export function Sidebar() {
       <nav className="flex-1 px-4 py-6 space-y-2">
         {menuItems.map((item) => {
           const isActive = location === item.href;
+
           return (
             <Link key={item.href} href={item.href}>
               <div
+                onClick={() => setIsOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer group",
+                  "relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer group",
                   isActive
                     ? "bg-primary/10 text-primary border border-primary/20 shadow-lg shadow-primary/5"
                     : "text-muted-foreground hover:bg-white/5 hover:text-white"
                 )}
               >
-                <item.icon className={cn("w-5 h-5 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-white")} />
+                <item.icon
+                  className={cn(
+                    "w-5 h-5 transition-colors",
+                    isActive
+                      ? "text-primary"
+                      : "text-muted-foreground group-hover:text-white"
+                  )}
+                />
+
                 <span className="font-medium">{item.label}</span>
+
                 {isActive && (
                   <div className="absolute right-4 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
                 )}
@@ -59,6 +84,58 @@ export function Sidebar() {
           <span className="font-medium">Sign Out</span>
         </button>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile Top Bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 glass-card border-b border-white/5 flex items-center justify-between px-4 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center">
+            <Shield className="w-4 h-4 text-white" />
+          </div>
+
+          <span className="font-bold text-white font-display">
+            DeepShield
+          </span>
+        </div>
+
+        <button
+          onClick={() => setIsOpen(true)}
+          className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex w-64 h-screen fixed left-0 top-0 glass-card border-r border-white/5 flex-col z-50">
+        <SidebarContent />
+      </div>
+
+      {/* Mobile Drawer */}
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+
+          <div className="fixed left-0 top-0 h-screen w-64 glass-card border-r border-white/5 flex flex-col z-[60] lg:hidden">
+            <div className="p-4 flex items-center justify-end border-b border-white/5">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <SidebarContent />
+          </div>
+        </>
+      )}
+    </>
   );
 }
