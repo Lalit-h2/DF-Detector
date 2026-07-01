@@ -305,15 +305,6 @@ Stores:
 
 ---
 
-## Dataset
-
-The model is trained using publicly available deepfake datasets including:
-
-- FaceForensics++
-- Celeb-DF
-- DFDC (DeepFake Detection Challenge)
-
----
 
 ## Deployment
 
